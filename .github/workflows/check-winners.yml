@@ -1,0 +1,38 @@
+name: Daily Winner Check
+
+on:
+  schedule:
+    # 매일 오전 10시 KST (01:00 UTC) - 아침 방송 끝난 뒤 실행
+    - cron: '0 1 * * *'
+  workflow_dispatch:  # 수동 실행 버튼
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Run winner check
+        run: python scripts/check_winners.py
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/latest-check.json
+          git diff --staged --quiet || git commit -m "Update winner check results $(date -u +%Y-%m-%d)"
+          git push
