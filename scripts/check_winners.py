@@ -1,6 +1,7 @@
 """
 KBS 라디오 게시판에서 어제 당첨자 목록을 확인하는 스크립트.
 GitHub Actions에서 매일 실행됨. 결과는 data/latest-check.json에 저장.
+v2: AngularJS 렌더링 대기 개선
 """
 import asyncio
 import json
@@ -23,8 +24,6 @@ PROGRAMS = [
 
 
 def match_line(line):
-    """한 줄 안에 배가영/0304/baby_ 관련 매칭이 있는지 확인.
-    Returns (confidence, reasons) or (None, [])"""
     reasons = []
     strong_count = 0
     weak_count = 0
@@ -66,6 +65,38 @@ def match_line(line):
     return (None, [])
 
 
+async def wait_for_content(page, min_length=2000, max_wait_seconds=45):
+    """페이지의 innerText가 충분한 길이가 될 때까지 대기."""
+    start = asyncio.get_event_loop().time()
+    last_length = 0
+    stable_count = 0
+    
+    while True:
+        elapsed = asyncio.get_event_loop().time() - start
+        if elapsed > max_wait_seconds:
+            print(f"    [wait] Timeout after {max_wait_seconds}s")
+            return
+        
+        try:
+            text = await page.inner_text("body")
+            length = len(text)
+        except:
+            length = 0
+        
+        print(f"    [wait] {elapsed:.1f}s - text length: {length}")
+        
+        if length >= min_length and length == last_length:
+            stable_count += 1
+            if stable_count >= 2:
+                print(f"    [wait] Content stable at {length} chars")
+                return
+        else:
+            stable_count = 0
+        
+        last_length = length
+        await page.wait_for_timeout(2000)
+
+
 async def check_program(browser, program):
     result = {
         "program": program["name"],
@@ -74,21 +105,25 @@ async def check_program(browser, program):
         "matches": [],
         "error": None,
         "page_length": 0,
+        "page_text_sample": "",
     }
     context = await browser.new_context(
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
         locale="ko-KR",
+        viewport={"width": 1280, "height": 900},
     )
     page = await context.new_page()
     try:
         print(f"→ Loading: {program['name']}")
-        await page.goto(program["url"], wait_until="networkidle", timeout=45000)
+        await page.goto(program["url"], wait_until="domcontentloaded", timeout=60000)
+        
         # AngularJS 렌더링 대기
-        await page.wait_for_timeout(5000)
+        await wait_for_content(page, min_length=2000, max_wait_seconds=45)
+        
         text = await page.inner_text("body")
         result["page_length"] = len(text)
+        result["page_text_sample"] = text[:800]
 
-        # 매칭
         for line in text.split("\n"):
             line = line.strip()
             if not line or len(line) > 500:
@@ -133,7 +168,7 @@ async def main():
     for r in results:
         status = "✓" if r["success"] else "✗"
         m = len(r["matches"]) if r["success"] else 0
-        print(f"{status} {r['program']}: {m} matches")
+        print(f"{status} {r['program']}: {m} matches (page: {r['page_length']} chars)")
 
 
 if __name__ == "__main__":
