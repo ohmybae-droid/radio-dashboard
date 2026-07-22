@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>라디오 당첨 확인</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', system-ui, sans-serif;
+    background: #FAFAF7; color: #1A1A1A;
+    padding: 24px 16px 64px; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  .hdr { margin-bottom: 24px; }
+  .hdr h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+  .hdr .sub { font-size: 13px; color: #888; margin-top: 6px; }
+  .back-link {
+    display: inline-block; margin-top: 8px;
+    font-size: 12px; color: #1F4080;
+    text-decoration: none;
+  }
+  .back-link:hover { text-decoration: underline; }
+  
+  .info-banner {
+    background: #F5F2EA; border-radius: 10px;
+    padding: 12px 14px; font-size: 12px; color: #555;
+    margin-bottom: 16px; line-height: 1.6;
+  }
+  .info-banner strong { color: #1A1A1A; }
+  
+  .prog-card {
+    background: #fff; border: 1px solid #ECEAE0; border-radius: 12px;
+    padding: 16px; margin-bottom: 12px;
+  }
+  .prog-name {
+    font-size: 15px; font-weight: 600; margin-bottom: 10px;
+  }
+  
+  .match {
+    padding: 10px 12px; margin: 8px 0;
+    background: #FAFAF7; border-radius: 8px;
+    border-left: 3px solid #DDD;
+  }
+  .match.high { border-left-color: #2E8B4E; }
+  .match.medium { border-left-color: #C77400; }
+  .match.low { border-left-color: #C13434; }
+  
+  .match-label {
+    font-size: 12px; font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .match.high .match-label { color: #1F5C2C; }
+  .match.medium .match-label { color: #8C5100; }
+  .match.low .match-label { color: #8C1F1F; }
+  
+  .match-line {
+    font-size: 13px; color: #1A1A1A;
+    word-break: break-all;
+    margin-bottom: 4px;
+  }
+  .match-reason {
+    font-size: 11px; color: #888;
+  }
+  
+  .no-match {
+    padding: 10px 12px;
+    color: #888; font-size: 13px;
+  }
+  .warn-inline {
+    color: #C77400; font-size: 11px;
+  }
+  
+  .error-box {
+    background: #FBE5E5; border: 1px solid #F5C5C5;
+    border-radius: 10px; padding: 14px;
+    color: #8C1F1F; font-size: 13px; line-height: 1.7;
+  }
+  .error-box strong { display: block; margin-top: 8px; }
+  .error-box ul { margin-top: 8px; padding-left: 18px; }
+  .error-box a { color: #1F4080; }
+  
+  .success-box {
+    background: #E6F0E8; border: 1px solid #C5E0CD;
+    border-radius: 10px; padding: 12px 14px;
+    color: #1F5C2C; font-size: 13px;
+    margin-bottom: 16px;
+  }
+  
+  .prog-error {
+    background: #FBE5E5; padding: 10px 12px;
+    border-radius: 6px; color: #8C1F1F;
+    font-size: 12px; word-break: break-all;
+  }
+  
+  .refresh-btn {
+    background: #1A1A1A; color: #fff; border: 0;
+    height: 36px; padding: 0 14px; border-radius: 8px;
+    font-size: 13px; cursor: pointer;
+    font-family: inherit; margin-top: 8px;
+  }
+  .refresh-btn:hover { background: #333; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <h1>🔍 라디오 당첨 확인</h1>
+    <div class="sub" id="checked-at">불러오는 중...</div>
+    <a href="./" class="back-link">← 선물 관리로 돌아가기</a>
+  </div>
+  
+  <div class="info-banner">
+    매일 아침 자동으로 KBS 게시판에서 <strong>배가영 / 0304 / baby_b</strong> 관련 항목을 찾아요.<br>
+    🟢 확실 · 🟡 추정 · 🔴 검토필요 순으로 분류됩니다.
+  </div>
+  
+  <div id="content">
+    <div style="text-align:center;padding:40px;color:#888;">확인 중...</div>
+  </div>
+</div>
+
+<script>
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function formatTimeAgo(iso) {
+  const t = new Date(iso);
+  const now = new Date();
+  const diffMin = Math.floor((now - t) / 60000);
+  if (diffMin < 60) return diffMin + '분 전';
+  if (diffMin < 1440) return Math.floor(diffMin / 60) + '시간 전';
+  return Math.floor(diffMin / 1440) + '일 전';
+}
+
+async function load() {
+  const contentEl = document.getElementById('content');
+  const checkedAtEl = document.getElementById('checked-at');
+  
+  try {
+    const res = await fetch('data/latest-check.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    
+    // 마지막 확인 시각
+    const checkedAt = new Date(data.checked_at);
+    checkedAtEl.textContent = '마지막 자동 확인: ' + formatTimeAgo(data.checked_at) + 
+      ' (' + checkedAt.toLocaleString('ko-KR') + ')';
+    
+    // 전체 성공 여부 요약
+    let html = '';
+    const totalMatches = data.programs.reduce((sum, p) => sum + (p.success ? p.matches.length : 0), 0);
+    const successCount = data.programs.filter(p => p.success).length;
+    
+    if (successCount === data.programs.length) {
+      html += '<div class="success-box">';
+      if (totalMatches > 0) {
+        html += '✅ 성공적으로 확인 완료. 총 <strong>' + totalMatches + '건</strong> 매칭됨';
+      } else {
+        html += '✅ 성공적으로 확인 완료. 매칭 없음 (오늘은 당첨 없나봐요)';
+      }
+      html += '</div>';
+    }
+    
+    // 프로그램별 결과
+    for (const prog of data.programs) {
+      html += '<div class="prog-card">';
+      html += '<div class="prog-name">📻 ' + esc(prog.program) + '</div>';
+      
+      if (!prog.success) {
+        html += '<div class="prog-error">⚠️ 크롤링 실패: ' + esc(prog.error || '알 수 없음') + '</div>';
+      } else if (prog.matches.length === 0) {
+        html += '<div class="no-match">😐 매칭되는 항목 없음';
+        if (prog.page_length && prog.page_length < 500) {
+          html += ' <span class="warn-inline">(⚠️ 페이지 텍스트가 너무 짧음: ' + prog.page_length + '자 - 렌더링 실패 가능)</span>';
+        }
+        html += '</div>';
+      } else {
+        const sorted = [...prog.matches].sort((a,b) => {
+          const rank = {high:0, medium:1, low:2};
+          return rank[a.confidence] - rank[b.confidence];
+        });
+        for (const m of sorted) {
+          const icon = m.confidence === 'high' ? '🟢' : m.confidence === 'medium' ? '🟡' : '🔴';
+          const label = m.confidence === 'high' ? '확실' : m.confidence === 'medium' ? '추정' : '검토필요';
+          html += '<div class="match ' + m.confidence + '">';
+          html += '<div class="match-label">' + icon + ' ' + label + '</div>';
+          html += '<div class="match-line">' + esc(m.line) + '</div>';
+          html += '<div class="match-reason">' + m.reasons.map(esc).join(' · ') + '</div>';
+          html += '</div>';
+        }
+      }
+      html += '</div>';
+    }
+    
+    html += '<button class="refresh-btn" onclick="load()">🔄 다시 불러오기</button>';
+    contentEl.innerHTML = html;
+    
+  } catch (e) {
+    checkedAtEl.textContent = '아직 확인 데이터가 없어요';
+    contentEl.innerHTML = 
+      '<div class="error-box">' +
+      '❌ 확인 데이터를 불러올 수 없어요' +
+      '<strong>가능한 원인:</strong>' +
+      '<ul>' +
+      '<li>GitHub Actions가 아직 실행 안 됨</li>' +
+      '<li>data/latest-check.json 파일이 없음</li>' +
+      '<li>크롤링이 실패해서 파일이 안 만들어짐</li>' +
+      '</ul>' +
+      '<strong>확인:</strong> GitHub 저장소 → Actions 탭에서 실행 이력 확인' +
+      '<br><br>기술 정보: ' + esc(e.message) +
+      '</div>' +
+      '<button class="refresh-btn" onclick="load()">🔄 다시 불러오기</button>';
+  }
+}
+
+load();
+</script>
+</body>
+</html>
