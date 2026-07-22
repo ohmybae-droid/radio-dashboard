@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-07-22T11:48:57.782968+09:00",
+  "programs": [
+    {
+      "program": "조정식의 FM대행진",
+      "url": "https://program.kbs.co.kr/2fm/radio/sikfm/pc/board.html?smenu=adca27&bbs_loc=R2023-0192-03-656260,list,none,1,0",
+      "success": true,
+      "matches": [],
+      "error": null,
+      "page_length": 431
+    },
+    {
+      "program": "한해의 키스더라디오",
+      "url": "https://program.kbs.co.kr/2fm/radio/hanhaekiss/pc/board.html?smenu=906dc8&bbs_loc=R2025-0082-03-722746,list,none,1,0",
+      "success": true,
+      "matches": [],
+      "error": null,
+      "page_length": 433
+    }
+  ]
+}
