@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>라디오 선물 대시보드</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', system-ui, sans-serif;
+    background: #FAFAF7; color: #1A1A1A;
+    padding: 24px 16px 64px; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .hdr {
+    margin-bottom: 24px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+  .hdr h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+  .hdr .sub { font-size: 13px; color: #888; margin-top: 6px; }
+  .add-btn {
+    background: #1A1A1A; color: #fff; border: 0;
+    height: 38px; padding: 0 14px; border-radius: 10px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; white-space: nowrap; flex-shrink: 0;
+  }
+  .add-btn:hover { background: #333; }
+  
+  /* Modal */
+  .modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: flex; align-items: flex-start; justify-content: center;
+    z-index: 100; padding: 24px 16px;
+    overflow-y: auto;
+  }
+  .modal.hidden { display: none; }
+  .modal-card {
+    background: #fff; border-radius: 14px; padding: 22px;
+    max-width: 460px; width: 100%;
+    margin: auto 0;
+  }
+  .modal-h {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .modal-h h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  .modal-x {
+    background: transparent; border: 0; font-size: 24px; line-height: 1;
+    color: #888; cursor: pointer; padding: 0 4px;
+  }
+  .modal-x:hover { color: #1A1A1A; }
+  .form-row { margin-bottom: 14px; }
+  .form-row > label {
+    display: block; font-size: 12px; font-weight: 500;
+    color: #555; margin-bottom: 6px;
+  }
+  .form-row .req { color: #C13434; }
+  .form-row input[type="date"],
+  .form-row input[type="text"],
+  .form-row select,
+  .form-row textarea {
+    width: 100%; height: 38px; padding: 0 12px;
+    border: 1px solid #ECEAE0; border-radius: 8px;
+    font-size: 13px; background: #fff; font-family: inherit;
+    color: #1A1A1A;
+  }
+  .form-row textarea { height: auto; padding: 10px 12px; resize: vertical; }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+    outline: none; border-color: #1A1A1A;
+  }
+  .form-row .hint { font-size: 11px; color: #999; margin-top: 4px; }
+  .radio-group { display: flex; gap: 16px; }
+  .radio { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+  .radio input { width: auto !important; height: auto !important; margin: 0; }
+  .modal-actions {
+    display: flex; gap: 8px; justify-content: flex-end;
+    margin-top: 20px; padding-top: 14px; border-top: 1px solid #ECEAE0;
+  }
+  .modal-cancel, .modal-submit {
+    height: 38px; padding: 0 16px; border-radius: 8px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; border: 1px solid #ECEAE0;
+  }
+  .modal-cancel { background: #fff; color: #555; }
+  .modal-cancel:hover { border-color: #888; }
+  .modal-submit { background: #1A1A1A; color: #fff; border-color: #1A1A1A; }
+  .modal-submit:hover { background: #333; }
+  
+  /* Edit + Delete in detail */
+  .card-detail .detail-actions {
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px dashed #ECEAE0;
+    display: flex; gap: 6px;
+  }
+  .edit-btn, .cancel-btn, .delete-btn {
+    height: 28px; padding: 0 10px; border-radius: 7px;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+    background: transparent;
+  }
+  .edit-btn { border: 1px solid #ECEAE0; color: #1A1A1A; }
+  .edit-btn:hover { border-color: #1A1A1A; background: #F5F2EA; }
+  .cancel-btn { border: 1px solid #ECEAE0; color: #888; }
+  .cancel-btn:hover { border-color: #888; background: #F5F2EA; color: #333; }
+  .delete-btn { border: 1px solid #E5C5C5; color: #B05050; margin-left: auto; }
+  .delete-btn:hover { background: #FBE5E5; }
+  .panel-title {
+    font-size: 13px; font-weight: 600; color: #555;
+    margin: 28px 0 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .panel-title .count { font-weight: 400; color: #999; font-size: 12px; }
+  
+  /* Apply-eligibility panel */
+  .prog-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .prog {
+    background: #fff; border: 1px solid #ECEAE0; border-radius: 10px;
+    padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+  }
+  .prog.eligible { border-left: 3px solid #2E8B4E; }
+  .prog.waiting  { border-left: 3px solid #C77400; }
+  .prog.unknown  { border-left: 3px solid #BBB; }
+  .prog.discont  { opacity: 0.45; }
+  .prog-name { font-size: 13px; font-weight: 500; min-width: 0; }
+  .prog-meta { font-size: 11px; color: #999; margin-top: 2px; }
+  .prog-status {
+    font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .prog-status.eligible { background: #E6F0E8; color: #1F5C2C; }
+  .prog-status.waiting  { background: #FEF3DC; color: #8C5100; }
+  .prog-status.unknown  { background: #EDECE5; color: #5A5950; }
+  .prog-status.discont  { background: #F5F5F0; color: #888; }
+  
+  /* Metric cards (5 cards) */
+  .metrics {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 8px; margin-bottom: 16px;
+  }
+  .metric {
+    background: #fff; border: 1px solid #ECEAE0; border-radius: 12px;
+    padding: 14px 10px; text-align: left; cursor: pointer;
+    transition: all 0.15s; font-family: inherit;
+  }
+  .metric:hover { border-color: #D4D2C8; }
+  .metric.active { border-color: #1A1A1A; background: #1A1A1A; }
+  .metric.active .metric-label,
+  .metric.active .metric-value { color: #fff; }
+  .metric-label { font-size: 11px; color: #888; font-weight: 500; }
+  .metric-value { font-size: 22px; font-weight: 600; margin-top: 4px; letter-spacing: -0.02em; }
+  .metric.warn .metric-value { color: #C77400; }
+  .metric.info .metric-value { color: #2E5C8B; }
+  .metric.muted .metric-value { color: #888; }
+  .metric.active.warn .metric-value,
+  .metric.active.info .metric-value,
+  .metric.active.muted .metric-value { color: #fff; }
+  
+  /* Controls */
+  .controls {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .search {
+    flex: 1; min-width: 200px; height: 36px; padding: 0 12px;
+    border: 1px solid #ECEAE0; border-radius: 10px; font-size: 13px;
+    background: #fff; font-family: inherit; color: #1A1A1A;
+  }
+  .search:focus { outline: none; border-color: #1A1A1A; }
+  .prog-select {
+    height: 36px; padding: 0 28px 0 12px; border: 1px solid #ECEAE0;
+    border-radius: 10px; font-size: 13px;
+    background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="%23888" stroke-width="1.5" fill="none"/></svg>') no-repeat right 10px center;
+    appearance: none; -webkit-appearance: none; font-family: inherit;
+    color: #1A1A1A; cursor: pointer; max-width: 220px;
+  }
+  
+  /* Cards */
+  .cards { display: flex; flex-direction: column; gap: 8px; }
+  .card {
+    background: #fff; border: 1px solid #ECEAE0; border-radius: 12px;
+    padding: 14px 16px; transition: all 0.15s;
+  }
+  .card:hover { border-color: #D4D2C8; }
+  .card.used { background: #FAFAF7; opacity: 0.6; }
+  .card.expiring { border-color: #F5DEB3; background: #FFF9EE; }
+  .card.giftnote-due { border-left: 3px solid #2E5C8B; }
+  .card.missed { background: #FAFAF7; opacity: 0.75; border-left: 3px solid #B59070; }
+  .card.cancelled { background: #FAF5F5; opacity: 0.65; border-left: 3px solid #C13434; }
+  
+  .card-row1 {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; margin-bottom: 6px;
+  }
+  .card-gift {
+    font-size: 15px; font-weight: 600; line-height: 1.4;
+    word-break: keep-all; flex: 1; min-width: 0;
+  }
+  .card-badges { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+  .badge {
+    padding: 2px 8px; border-radius: 6px;
+    font-size: 11px; font-weight: 500; white-space: nowrap;
+  }
+  .badge.expiring { background: #FEF3DC; color: #8C5100; }
+  .badge.available { background: #E6F0E8; color: #1F5C2C; }
+  .badge.no-exp { background: #EDECE5; color: #5A5950; }
+  .badge.mobile { background: #E8EEF7; color: #1F4080; }
+  .badge.physical { background: #F0EDE5; color: #5A5040; }
+  .badge.discont { background: #F0EDE5; color: #888; }
+  .badge.giftnote-due { background: #E8EEF7; color: #1F4080; }
+  .badge.shipping-due { background: #F0E8F7; color: #5A2080; }
+  .badge.missed { background: #F0E5DC; color: #6B5340; }
+  .badge.random { background: #FFF3D8; color: #8C6100; border: 1px solid #F0DDA8; }
+  .badge.cancelled { background: #FBE5E5; color: #8C1F1F; }
+  
+  .card-meta {
+    font-size: 12px; color: #888;
+    display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center;
+    margin-bottom: 10px;
+  }
+  .card-meta .sep { color: #DDD; }
+  
+  /* Action toggles */
+  .actions {
+    display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+  }
+  .toggle {
+    height: 28px; padding: 0 10px; border-radius: 7px;
+    border: 1px solid #ECEAE0; background: #fff; font-size: 12px;
+    cursor: pointer; color: #888; font-family: inherit;
+    transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .toggle:hover { border-color: #1A1A1A; color: #1A1A1A; }
+  .toggle.on {
+    background: #1A1A1A; color: #fff; border-color: #1A1A1A;
+  }
+  .toggle.on:hover { background: #333; }
+  .toggle .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    border: 1.5px solid currentColor; background: transparent;
+  }
+  .toggle.on .dot { background: currentColor; }
+  .toggle.detail-btn {
+    margin-left: auto; padding: 0 8px;
+    border-color: transparent; color: #999;
+  }
+  .toggle.detail-btn:hover { background: #F5F2EA; border-color: #ECEAE0; }
+  
+  .card-detail {
+    border-top: 1px solid #ECEAE0; padding-top: 10px; margin-top: 10px;
+    font-size: 12px; color: #666; display: none;
+  }
+  .card-detail.show { display: block; }
+  .card-detail .row { display: flex; gap: 8px; margin-top: 4px; }
+  .card-detail .row .k { color: #999; min-width: 64px; }
+  
+  /* Missed summary banner */
+  .missed-banner {
+    background: #F5EDDF; border: 1px solid #E5D5BC; border-radius: 10px;
+    padding: 10px 14px; margin-bottom: 16px;
+    font-size: 12px; color: #6B5340; display: none;
+  }
+  .missed-banner.show { display: block; }
+  .missed-banner strong { font-weight: 600; }
+  
+  .empty {
+    background: #fff; border: 1px dashed #DDD; border-radius: 12px;
+    padding: 32px 16px; text-align: center; color: #999; font-size: 13px;
+  }
+  
+  .foot {
+    margin-top: 32px; padding-top: 16px;
+    border-top: 1px solid #ECEAE0;
+    font-size: 11px; color: #AAA; text-align: center; line-height: 1.6;
+  }
+  
+  @media (max-width: 640px) {
+    .prog-grid { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 420px) {
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div>
+      <h1>라디오 선물 관리</h1>
+      <div class="sub" id="today-line">불러오는 중…</div>
+      <div class="sync-status" id="sync-status" style="font-size:11px;color:#888;margin-top:4px;"></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;">
+      <button class="add-btn" id="settings-btn" style="background:#fff;color:#1A1A1A;border:1px solid #ECEAE0;" title="동기화 설정">⚙️</button>
+      <button class="add-btn" id="restore-btn" style="background:#fff;color:#1A1A1A;border:1px solid #ECEAE0;">📁 복원</button>
+      <button class="add-btn" id="backup-btn" style="background:#fff;color:#1A1A1A;border:1px solid #1A1A1A;">💾 백업</button>
+      <button class="add-btn" id="open-add-btn">+ 새 당첨</button>
+    </div>
+    <input type="file" id="restore-file" accept=".json" style="display:none;">
+  </div>
+  <div id="backup-reminder" style="display:none;background:#FFF3D8;border:1px solid #F0DDA8;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#8C6100;">
+    💡 백업하신 지 오래됐어요. <strong>[💾 백업]</strong> 버튼으로 데이터를 안전하게 저장해두세요!
+  </div>
+  
+  <div class="panel-title">
+    지금 응모 가능한 프로그램
+    <span class="count" id="prog-count"></span>
+  </div>
+  <div class="prog-grid" id="prog-grid"></div>
+  
+  <div class="panel-title">내 선물</div>
+  <div class="metrics" id="metrics"></div>
+  <div class="missed-banner" id="missed-banner"></div>
+  
+  <div class="controls">
+    <input type="text" class="search" id="search" placeholder="선물명, 프로그램으로 검색">
+    <select class="prog-select" id="prog-filter">
+      <option value="">전체 프로그램</option>
+    </select>
+  </div>
+  
+  <div id="content"></div>
+  
+  <div class="foot">
+    변경사항은 자동 저장됩니다<br>
+    '놓침' = 유효기간 내 사용 못한 선물 (모바일·물건 둘 다)
+  </div>
+</div>
+
+<div class="modal hidden" id="add-modal">
+  <div class="modal-card">
+    <div class="modal-h">
+      <h2 id="modal-title">새 당첨 추가</h2>
+      <button class="modal-x" id="close-add-btn" aria-label="닫기">×</button>
+    </div>
+    <div class="form-row">
+      <label>당첨일 <span class="req">*</span></label>
+      <input type="date" id="add-date">
+    </div>
+    <div class="form-row">
+      <label>프로그램 <span class="req">*</span></label>
+      <select id="add-program"></select>
+    </div>
+    <div class="form-row">
+      <label>코너</label>
+      <input type="text" id="add-corner" placeholder="예: 식타벅스">
+    </div>
+    <div class="form-row">
+      <label>선물 <span class="req">*</span></label>
+      <input type="text" id="add-gift" placeholder="예: 메가 아메리카노">
+    </div>
+    <div class="form-row">
+      <label>종류</label>
+      <div class="radio-group">
+        <label class="radio"><input type="radio" name="add-mobile" value="true" checked> 모바일쿠폰</label>
+        <label class="radio"><input type="radio" name="add-mobile" value="false"> 물건</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>유효기간</label>
+      <input type="date" id="add-exp">
+      <div class="hint">선물에 만료일이 있으면 입력 (없으면 비워두기)</div>
+    </div>
+    <div class="form-row">
+      <label>사연 내용</label>
+      <textarea id="add-content" rows="2" placeholder="예: 일상사연 - 단골옷가게"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="add-cancel">취소</button>
+      <button class="modal-submit" id="add-submit">추가하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="modal hidden" id="settings-modal">
+  <div class="modal-card">
+    <div class="modal-h">
+      <h2>동기화 설정</h2>
+      <button class="modal-x" id="close-settings-btn" aria-label="닫기">×</button>
+    </div>
+    <div style="background:#F5F2EA;border-radius:8px;padding:12px;font-size:12px;color:#555;margin-bottom:16px;line-height:1.6;">
+      JSONBin.io에서 발급받은 <strong>Master Key</strong>를 입력하면, 데이터가 자동으로 클라우드에 저장됩니다.<br>
+      PC와 폰에 <strong>동일한 키</strong>를 입력하면 자동 동기화가 됩니다.
+    </div>
+    <div class="form-row">
+      <label>Master Key <span class="req">*</span></label>
+      <input type="password" id="settings-key" placeholder="$2a$10$... 로 시작하는 긴 문자열">
+      <div class="hint">JSONBin.io → API Keys에서 복사한 키를 붙여넣으세요</div>
+    </div>
+    <div class="form-row">
+      <label>Bin ID (자동 관리)</label>
+      <input type="text" id="settings-bin" placeholder="처음이면 비워두세요 - 자동 생성됩니다" readonly style="background:#FAFAF7;color:#666;">
+      <div class="hint">다른 기기와 동기화하려면 이 Bin ID를 그 기기에도 붙여넣으세요</div>
+    </div>
+    <div style="margin-top:14px;padding:10px;background:#FAFAF7;border-radius:8px;font-size:12px;color:#555;line-height:1.6;">
+      <div id="sync-info">동기화 안 됨</div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="settings-disconnect" style="border:1px solid #E5C5C5;color:#B05050;">연결 끊기</button>
+      <button class="modal-cancel" id="settings-cancel">취소</button>
+      <button class="modal-submit" id="settings-save">저장 & 연결</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const INITIAL_DATA = [{"id":1,"date":"2024-05-18","program":"윤정수남창희의 미스터라디오","corner":"미라팡팡","gift":"아메리카노","isMobile":true,"expDate":null,"used":"O","giftnote":"X","receipt":"O","content":"","cancelled":"X","shipping":"X"},{"id":2,"date":"2024-07-01","program":"윤정수남창희의 미스터라디오","corner":"3부 첫 곡을 맞혀라","gift":"당충전 세트","isMobile":true,"expDate":null,"used":"O","giftnote":"X","receipt":"O","content":"3부 첫곡 맞히기","cancelled":"X","shipping":"X"},{"id":3,"date":"2024-07-19","program":"이금희의 사랑하기좋은날","corner":"더좋은날","gift":"건강기능식품-가정용혈압계","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"","cancelled":"X","shipping":"O"},{"id":4,"date":"2024-08-04","program":"이현우의 음악앨범","corner":"일반사연","gift":"랜덤선물-카레밀키트세트","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"","cancelled":"X","shipping":"O"},{"id":5,"date":"2024-08-07","program":"윤정수남창희의 미스터라디오","corner":"분노가 콸콸콸","gift":"뷰티상품권","isMobile":false,"expDate":"2025-01-31","used":"X","giftnote":"O","receipt":"O","content":"이상한부장","cancelled":"X","shipping":"O"},{"id":6,"date":"2024-09-03","program":"조정식의 FM대행진","corner":"식타벅스","gift":"스타벅스 아이스 아메리카노","isMobile":true,"expDate":null,"used":"O","giftnote":"X","receipt":"O","content":"","cancelled":"X","shipping":"X"},{"id":7,"date":"2024-09-10","program":"이현우의 음악앨범","corner":"촤준커","gift":"커피","isMobile":true,"expDate":"2024-10-10","used":"X","giftnote":"X","receipt":"O","content":"","cancelled":"X","shipping":"X"},{"id":8,"date":"2024-10-29","program":"조정식의 FM대행진","corner":"베스트 오답","gift":"대도수산 간장게장 & 양념게장","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"참쉽쥬~인기디제이~청취율조사~","cancelled":"X","shipping":"O"},{"id":9,"date":"2024-11-05","program":"조정식의 FM대행진","corner":"전국화 기념 이벤트","gift":"배달앱 상품권 3만원","isMobile":true,"expDate":null,"used":"O","giftnote":"X","receipt":"O","content":"","cancelled":"X","shipping":"X"},{"id":10,"date":"2024-11-08","program":"이석훈의 브런치카페","corner":"퀴즈도전","gift":"오도르 방향제","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"퀴즈정답","cancelled":"X","shipping":"O"},{"id":11,"date":"2024-11-11","program":"조정식의 FM대행진","corner":"막대과자 데이","gift":"막대과자","isMobile":true,"expDate":null,"used":"O","giftnote":"X","receipt":"O","content":"","cancelled":"X","shipping":"X"},{"id":12,"date":"2024-11-21","program":"청하의 볼륨을 높여요","corner":"아니그래가지구","gift":"워싱파우더 링클엠플패드","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"","cancelled":"X","shipping":"O"},{"id":13,"date":"2024-11-25","program":"이금희의 사랑하기좋은날","corner":"금희라떼","gift":"커피상품권","isMobile":true,"expDate":null,"used":"O","giftnote":"X","receipt":"X","content":"","cancelled":"X","shipping":"X"},{"id":14,"date":"2024-12-17","program":"오마이걸 효정의 볼륨을 높여요","corner":"미라클 이브닝","gift":"맘스터치 햄버거 쿠폰","isMobile":true,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"저녁이 즐거운 이유~ 달이 예뻐서!","cancelled":"X","shipping":"X"},{"id":15,"date":"2024-12-19","program":"이금희의 사랑하기좋은날","corner":"고민의숲","gift":"차량용 방향제","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"팀원들과 어떻게 지낼지","cancelled":"X","shipping":"O"},{"id":16,"date":"2024-12-19","program":"윤정수남창희의 미스터라디오","corner":"일반사연","gift":"아메리카노(메가 hot)","isMobile":true,"expDate":"2025-01-18","used":"O","giftnote":"X","receipt":"O","content":"미라의 매력","cancelled":"X","shipping":"X"},{"id":17,"date":"2024-12-20","program":"조정식의 FM대행진","corner":"조커","gift":"커피","isMobile":true,"expDate":null,"used":"O","giftnote":"X","receipt":"O","content":"","cancelled":"X","shipping":"X"},{"id":18,"date":"2024-12-21","program":"하하의 슈퍼라디오","corner":"드림소울쏭","gift":"치킨+콜라세트 모바일쿠폰","isMobile":true,"expDate":"2025-01-29","used":"O","giftnote":"O","receipt":"O","content":"셀프축가","cancelled":"X","shipping":"X"},{"id":19,"date":"2024-12-26","program":"이은지의 가요광장","corner":"일반사연","gift":"수제콜라","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"보라 처음봐요","cancelled":"X","shipping":"O"},{"id":20,"date":"2024-12-26","program":"하하의 슈퍼라디오","corner":"하줌마","gift":"아메리카노 2잔+케이크 세트 모바일 쿠폰","isMobile":true,"expDate":null,"used":"O","giftnote":"X","receipt":"X","content":"단골옷가게","cancelled":"X","shipping":"X"},{"id":21,"date":"2025-01-22","program":"조정식의 FM대행진","corner":"별별히스토리","gift":"랜덤선물 - 봉프레상품권","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"퀴즈정답","cancelled":"X","shipping":"O"},{"id":22,"date":"2025-02-13","program":"이현우의 음악앨범","corner":"촤준커","gift":"아메리카노(메가 hot)","isMobile":true,"expDate":"2025-03-15","used":"X","giftnote":"X","receipt":"O","content":"데이비드사연별로야,K직장인","cancelled":"X","shipping":"X"},{"id":23,"date":"2025-02-14","program":"윤정수남창희의 미스터라디오","corner":"분노가 콸콸콸","gift":"모바일주유권 2만원(SK)","isMobile":true,"expDate":"2025-03-27","used":"O","giftnote":"O","receipt":"O","content":"열받는후배","cancelled":"X","shipping":"X"},{"id":24,"date":"2025-02-21","program":"하하의 슈퍼라디오","corner":"슈퍼 프라이데이 플리 / 아메리카노 모바일 쿠폰","gift":"아메리카노(메가 hot)","isMobile":true,"expDate":"2025-03-23","used":"X","giftnote":"X","receipt":"O","content":"샤이니누난너무예뻐노래추천","cancelled":"X","shipping":"X"},{"id":25,"date":"2025-03-14","program":"조정식의 FM대행진","corner":"화이트 데이","gift":"* (새콤 츄잉 캔디) - 발송완료","isMobile":true,"expDate":"2025-04-13","used":"O","giftnote":"X","receipt":"O","content":"화이트데이기념","cancelled":"X","shipping":"X"},{"id":26,"date":"2025-03-21","program":"조정식의 FM대행진","corner":"퀴즈고스톱","gift":"랜덤선물- 봉프레상품권","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"응원문자","cancelled":"X","shipping":"O"},{"id":27,"date":"2025-03-27","program":"오마이걸 효정의 볼륨을 높여요","corner":"미라클 이브닝","gift":"맥도날드세트","isMobile":true,"expDate":"2025-04-26","used":"O","giftnote":"X","receipt":"O","content":"차 고장 붕어빵","cancelled":"X","shipping":"X"},{"id":28,"date":"2025-04-17","program":"하하의 슈퍼라디오","corner":"음악,근데이제추억을겻들인","gift":"진간장세트 ==> -명란젓세트 ==> 간장게장세트","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"음악퀴즈(3번 플라이하이)","cancelled":"X","shipping":"O"},{"id":29,"date":"2025-04-28","program":"윤정수남창희의 미스터라디오","corner":"분노가 콸콸콸","gift":"모바일주유권 2만원(SK)","isMobile":true,"expDate":"2025-05-31","used":"O","giftnote":"O","receipt":"O","content":"조용히 영화보자~","cancelled":"X","shipping":"X"},{"id":30,"date":"2025-05-28","program":"조정식의 FM대행진","corner":"식타벅스","gift":"랜덤선물 - 제로당숙취해소제","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"X","content":"민으로 끝나는 오답","cancelled":"X","shipping":"X"},{"id":31,"date":"2025-05-29","program":"하하의 슈퍼라디오","corner":"음악,근데이제추억을겻들인","gift":"메가ㅣ아메리카노","isMobile":true,"expDate":"2025-07-04","used":"O","giftnote":"O","receipt":"O","content":"2번 귀요미송","cancelled":"X","shipping":"X"},{"id":32,"date":"2025-07-15","program":"한해의 키스더라디오","corner":"계획 좀 한 해","gift":"메가ㅣ아메리카노","isMobile":true,"expDate":"2025-08-22","used":"O","giftnote":"O","receipt":"O","content":"지하철에서 핸드폰 안보기","cancelled":"X","shipping":"X"},{"id":33,"date":"2025-07-22","program":"오마이걸 효정의 볼륨을 높여요","corner":"미라클 이브닝","gift":"배스킨라빈스 싱글레귤러","isMobile":true,"expDate":"2025-08-21","used":"O","giftnote":"X","receipt":"O","content":"더워서 운동하고 가~","cancelled":"X","shipping":"X"},{"id":34,"date":"2025-07-23","program":"은가은의 빛나는 트로트","corner":"일반사연","gift":"메가-복숭아아이스티","isMobile":true,"expDate":"2025-09-04","used":"O","giftnote":"O","receipt":"O","content":"보라 처음봐요~","cancelled":"X","shipping":"X"},{"id":35,"date":"2025-07-25","program":"한해의 키스더라디오","corner":"내일의맛","gift":"치킨쿠폰","isMobile":true,"expDate":"2025-09-05","used":"O","giftnote":"O","receipt":"O","content":"책상치워야지~","cancelled":"X","shipping":"X"},{"id":36,"date":"2025-09-23","program":"이금희의 사랑하기좋은날","corner":"일반사연","gift":"케이크와 꽃다발","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"퇴근길타코야끼","cancelled":"X","shipping":"O"},{"id":37,"date":"2025-09-28","program":"오마이걸 효정의 볼륨을 높여요","corner":"일반사연","gift":"맥도날드세트","isMobile":true,"expDate":"2025-10-29","used":"O","giftnote":"X","receipt":"O","content":"앞머리잘랐어요","cancelled":"X","shipping":"X"},{"id":38,"date":"2025-10-15","program":"제이시스 메디칼","corner":"","gift":"스벅 아메 2잔","isMobile":true,"expDate":"2025-11-14","used":"O","giftnote":"X","receipt":"O","content":"덴서티정품인증","cancelled":"X","shipping":"X"},{"id":39,"date":"2025-10-19","program":"상쾌한아침","corner":"미라클모닝","gift":"메가-아메리카노","isMobile":true,"expDate":"2025-11-21","used":"O","giftnote":"X","receipt":"O","content":"아침운동","cancelled":"X","shipping":"X"},{"id":40,"date":"2025-10-22","program":"윤정수남창희의 미스터라디오","corner":"분노가 콸콸콸","gift":"뚜레쥬르 쿠폰(순우유딸기무스)","isMobile":true,"expDate":"2025-11-26","used":"O","giftnote":"O","receipt":"O","content":"미친후배","cancelled":"X","shipping":"X"},{"id":41,"date":"2025-10-24","program":"한해의 키스더라디오","corner":"선물좀한해","gift":"우유","isMobile":true,"expDate":"2025-12-03","used":"O","giftnote":"O","receipt":"O","content":"추3세트","cancelled":"X","shipping":"X"},{"id":42,"date":"2025-10-25","program":"한해의 키스더라디오","corner":"놀라운토요일","gift":"카라멜마끼아또","isMobile":true,"expDate":"2025-12-03","used":"O","giftnote":"O","receipt":"O","content":"퀴즈정답","cancelled":"X","shipping":"X"},{"id":43,"date":"2025-10-27","program":"이금희의 사랑하기좋은날","corner":"보통날","gift":"영양제","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"퇴사후일상","cancelled":"X","shipping":"O"},{"id":44,"date":"2025-11-10","program":"조정식의 FM대행진","corner":"축하인사","gift":"선물-피규어","isMobile":false,"expDate":null,"used":"O","giftnote":"X","receipt":"O","content":"축하인사녹음","cancelled":"X","shipping":"O"},{"id":45,"date":"2025-12-10","program":"조정식의 FM대행진","corner":"옴뇸뇸","gift":"GS 25 천하장사 소시지","isMobile":true,"expDate":"2026-01-09","used":"O","giftnote":"X","receipt":"O","content":"강퇴시키고싶은사람-이중주차","cancelled":"X","shipping":"X"},{"id":46,"date":"2025-12-23","program":"하하의 슈퍼라디오","corner":"OX퀴즈","gift":"메가 아메리카노","isMobile":true,"expDate":"2026-01-22","used":"X","giftnote":"X","receipt":"O","content":"OX퀴즈 정답(수학못함)","cancelled":"X","shipping":"X"},{"id":47,"date":"2026-03-17","program":"한해의 키스더라디오","corner":"실수좀한해","gift":"던킨도너츠 미니도넛","isMobile":true,"expDate":null,"used":"O","giftnote":"X","receipt":"O","content":"","cancelled":"X","shipping":"X"},{"id":48,"date":"2026-05-01","program":"오마이걸 효정의 볼륨을 높여요","corner":"빵나왔쪙","gift":"뚜레쥬르 찹쌀식빵","isMobile":true,"expDate":"2026-06-03","used":"O","giftnote":"X","receipt":"O","content":"","cancelled":"X","shipping":"X"},{"id":49,"date":"2026-05-15","program":"오마이걸 효정의 볼륨을 높여요","corner":"음악방","gift":"랜덤선물-콩고기세트","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"","cancelled":"X","shipping":"O"},{"id":50,"date":"2026-04-21","program":"이금희의 사랑하기좋은날","corner":"월간욱다방","gift":"뷰티상품권","isMobile":false,"expDate":null,"used":"X","giftnote":"O","receipt":"X","content":"인형뽑기중독","cancelled":"X","shipping":"O"},{"id":51,"date":"2026-05-15","program":"윤정수남창희의 미스터라디오","corner":"일반사연(오랜만에왔어요)","gift":"메가커피 아메리카노","isMobile":true,"expDate":"2026-06-14","used":"X","giftnote":"X","receipt":"O","content":"오랜만에왔어요","cancelled":"X","shipping":"X"},{"id":52,"date":"2026-05-19","program":"폴킴의 가요광장","corner":"가광 초대석, 너를 만나","gift":"GS25 광동비타500","isMobile":true,"expDate":"2026-07-18","used":"O","giftnote":"X","receipt":"O","content":"응원필요해요(사장님보고)","cancelled":"X","shipping":"X"},{"id":53,"date":"2026-03-25","program":"조정식의 FM대행진","corner":"안윤상은 우리의 봄이다","gift":"커피","isMobile":true,"expDate":"2026-04-09","used":"X","giftnote":"X","receipt":"X","content":"","cancelled":"X","shipping":"X"},{"id":54,"date":"2026-02-26","program":"조정식의 FM대행진","corner":"조정씩씩 음악퀴즈","gift":"건강기능식품-정관장 궁중비책","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"가끔내가연락이없고 술을마셔도~","cancelled":"X","shipping":"O"},{"id":55,"date":"2025-12-24","program":"조정식의 FM대행진","corner":"메리 크리스마스","gift":"핫초코","isMobile":true,"expDate":null,"used":"O","giftnote":"X","receipt":"X","content":"","cancelled":"X","shipping":"X"},{"id":56,"date":"2026-06-24","program":"조정식의 FM대행진","corner":"오답 너스레(사연당첨)","gift":"랜덤선물 - 리포브화장품선물","isMobile":false,"expDate":null,"used":"O","giftnote":"O","receipt":"O","content":"야근으로 잃어가는 내 뷰티","cancelled":"X","shipping":"O"},{"id":57,"date":"2026-06-30","program":"가비의 슈퍼라디오","corner":"앙앙앙 응원문자","gift":"화장품 상품권 --> SOD 효소","isMobile":false,"expDate":null,"used":"X","giftnote":"O","receipt":"X","content":"","cancelled":"X","shipping":"O"},{"id":58,"date":"2026-06-26","program":"한해의 키스더라디오","corner":"한해우소","gift":"생과일 수박 주스 쿠폰","isMobile":true,"expDate":"2026-08-02","used":"X","giftnote":"X","receipt":"O","content":"","cancelled":"X","shipping":"X"},{"id":59,"date":"2026-06-25","program":"이금희의 사랑하기좋은날","corner":"영화 보기 좋은 날","gift":"메가박스 혼영세트(팝콘,콜라,영화권)","isMobile":true,"expDate":"2026-07-26","used":"X","giftnote":"X","receipt":"O","content":"영화퀴즈(레이첼맥아담스)","cancelled":"X","shipping":"X"},{"id":60,"date":"2026-07-02","program":"이현우의 음악앨범","corner":"촤준커","gift":"메가커피 아메리카노","isMobile":true,"expDate":"2026-09-30","used":"X","giftnote":"X","receipt":"O","content":"어제 야근하고 힘들었느데 커피 한잔 마시고 힘난다","cancelled":"X","shipping":"X"},{"id":61,"date":"2026-05-01","program":"오마이걸 효정의 볼륨을 높여요","corner":"빵나왔쪙","gift":"뚜레쥬르 찹쌀식빵","isMobile":true,"expDate":"2026-06-03","used":"X","giftnote":"X","receipt":"O","content":"오늘 노을 봤나요? 행복하자 ~","cancelled":"X","shipping":"X"},{"id":62,"date":"2026-07-02","program":"조정식의 FM대행진","corner":"* 퀴즈 고 스톱! *","gift":"- 응원 문자 (랜덤 선물) 배*영(baby_b***)","isMobile":false,"expDate":null,"used":"X","giftnote":"O","receipt":"X","content":"- 응원 문자 (랜덤 선물) 배*영(baby_b***)","cancelled":"X","shipping":"X"},{"id":63,"date":"2026-07-02","program":"이현우의 음악앨범","corner":"어디가세요? 퀴즈풀고가세요","gift":"멀티비타민세트","isMobile":false,"expDate":null,"used":"X","giftnote":"O","receipt":"O","content":"맨발걷기","cancelled":"X","shipping":"O"},{"id":64,"date":"2026-07-14","program":"조정식의 FM대행진","corner":"오답퀴즈","gift":"랜덤선물","isMobile":false,"expDate":null,"used":"X","giftnote":"X","shipping":"X","receipt":"X","content":"스로 끝나는 말 (당신은 아름다운 비너스, 나 완전히 새됐스)","cancelled":"X"},{"id":65,"date":"2026-07-15","program":"폴킴의 가요광장","corner":"<사연 정주행, 레디오~ 액션!>","gift":"치킨상품권","isMobile":true,"expDate":null,"used":"X","giftnote":"X","shipping":"O","receipt":"O","content":"이렇게 미룬다~ 데스크가서 비행기표 구입하기","cancelled":"X"},{"id":66,"date":"2026-07-17","program":"상쾌한아침","corner":"","gift":"투썸플레이스 카페라떼R","isMobile":true,"expDate":"2026-08-16","used":"X","giftnote":"X","shipping":"O","receipt":"O","content":"오랜만에 함께합니다","cancelled":"X"}];
+const PROGRAMS = {"상쾌한아침":{"time":"05-07","restrict":-1,"station":"Cool FM"},"조정식의 FM대행진":{"time":"07-09","restrict":14,"station":"Cool FM"},"이현우의 음악앨범":{"time":"09-11","restrict":30,"station":"Cool FM","note":"모바일 기준"},"박명수의 라디오쇼":{"time":"11-12","restrict":30,"station":"Cool FM"},"폴킴의 가요광장":{"time":"12-14","restrict":14,"station":"Cool FM"},"가비의 슈퍼라디오":{"time":"14-16","restrict":30,"station":"Cool FM"},"윤정수남창희의 미스터라디오":{"time":"16-18","restrict":0,"station":"Cool FM"},"이금희의 사랑하기좋은날":{"time":"18-20","restrict":30,"station":"Cool FM"},"오마이걸 효정의 볼륨을 높여요":{"time":"20-22","restrict":30,"station":"Cool FM"},"한해의 키스더라디오":{"time":"22-24","restrict":0,"station":"Cool FM"},"은가은의 빛나는 트로트":{"time":"14-16","restrict":30,"station":"2Radio"},"하하의 슈퍼라디오":{"discontinued":true,"station":"Cool FM"},"청하의 볼륨을 높여요":{"discontinued":true,"station":"Cool FM"},"이은지의 가요광장":{"discontinued":true,"station":"Cool FM"},"이석훈의 브런치카페":{"discontinued":true,"station":"Cool FM"},"제이시스 메디칼":{"event":true}};
+const TODAY = (() => { const t = new Date(); t.setHours(0,0,0,0); return t; })();
+
+let records = [];
+let activeFilter = 'todo';
+let searchTerm = '';
+let progFilterVal = '';
+let expandedIds = new Set();
+
+// ==== 동기화 (JSONBin) ====
+const SYNC_KEY_APIKEY = 'radio_sync_apikey_v1';
+const SYNC_KEY_BINID = 'radio_sync_binid_v1';
+const SYNC_KEY_LASTSYNC = 'radio_sync_last_v1';
+const SYNC_KEY_LASTMOD = 'radio_sync_lastmod_v1';
+let syncApiKey = null;
+let syncBinId = null;
+let syncLastAt = null;
+let syncTimer = null;
+let syncing = false;
+
+async function loadSyncConfig() {
+  try {
+    if (!window.storage || !window.storage.get) return;
+    const k = await window.storage.get(SYNC_KEY_APIKEY);
+    if (k && k.value) syncApiKey = k.value;
+    const b = await window.storage.get(SYNC_KEY_BINID);
+    if (b && b.value) syncBinId = b.value;
+    const s = await window.storage.get(SYNC_KEY_LASTSYNC);
+    if (s && s.value) syncLastAt = s.value;
+  } catch(e) {}
+}
+
+async function saveSyncConfig() {
+  try {
+    if (!window.storage || !window.storage.set) return;
+    if (syncApiKey) await window.storage.set(SYNC_KEY_APIKEY, syncApiKey);
+    if (syncBinId) await window.storage.set(SYNC_KEY_BINID, syncBinId);
+    if (syncLastAt) await window.storage.set(SYNC_KEY_LASTSYNC, syncLastAt);
+  } catch(e) {}
+}
+
+async function clearSyncConfig() {
+  syncApiKey = null;
+  syncBinId = null;
+  syncLastAt = null;
+  try {
+    if (window.storage && window.storage.delete) {
+      await window.storage.delete(SYNC_KEY_APIKEY);
+      await window.storage.delete(SYNC_KEY_BINID);
+      await window.storage.delete(SYNC_KEY_LASTSYNC);
+    }
+  } catch(e) {}
+  updateSyncStatus('연결 안 됨');
+}
+
+function updateSyncStatus(msg, cls) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = cls === 'ok' ? '#1F5C2C' : cls === 'err' ? '#8C1F1F' : cls === 'sync' ? '#1F4080' : '#888';
+}
+
+function formatSyncTime(iso) {
+  if (!iso) return '없음';
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMin = Math.floor((now - d) / 60000);
+  if (diffMin < 1) return '방금';
+  if (diffMin < 60) return diffMin + '분 전';
+  if (diffMin < 1440) return Math.floor(diffMin/60) + '시간 전';
+  return d.getMonth()+1 + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+async function pullFromCloud() {
+  if (!syncApiKey || !syncBinId) return null;
+  updateSyncStatus('☁️ 클라우드에서 불러오는 중...', 'sync');
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + syncBinId + '/latest', {
+      headers: { 'X-Master-Key': syncApiKey }
+    });
+    if (!res.ok) throw new Error('불러오기 실패: HTTP ' + res.status);
+    const json = await res.json();
+    const cloudRecords = json.record && json.record.records ? json.record.records : null;
+    if (!Array.isArray(cloudRecords)) throw new Error('데이터 형식 오류');
+    updateSyncStatus('✅ 최신 상태 (' + formatSyncTime(new Date().toISOString()) + ')', 'ok');
+    return cloudRecords;
+  } catch (e) {
+    updateSyncStatus('⚠️ 동기화 실패: ' + e.message, 'err');
+    return null;
+  }
+}
+
+async function pushToCloud() {
+  if (!syncApiKey || syncing) return false;
+  syncing = true;
+  updateSyncStatus('☁️ 저장 중...', 'sync');
+  try {
+    const payload = {
+      version: 'v11',
+      updatedAt: new Date().toISOString(),
+      records: records
+    };
+    let res, url;
+    console.log('[Sync] Pushing to cloud. syncBinId:', syncBinId, 'payload size:', JSON.stringify(payload).length);
+    if (syncBinId) {
+      url = 'https://api.jsonbin.io/v3/b/' + syncBinId;
+      console.log('[Sync] PUT to', url);
+      res = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': syncApiKey },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      url = 'https://api.jsonbin.io/v3/b';
+      console.log('[Sync] POST to', url);
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': syncApiKey },
+        body: JSON.stringify(payload)
+      });
+    }
+    console.log('[Sync] Response status:', res.status);
+    if (!res.ok) {
+      const errText = await res.text();
+      console.log('[Sync] Error body:', errText);
+      throw new Error('HTTP ' + res.status + ' - ' + errText.substring(0,100));
+    }
+    const data = await res.json();
+    console.log('[Sync] Success. Metadata:', data.metadata);
+    if (!syncBinId && data.metadata && data.metadata.id) {
+      syncBinId = data.metadata.id;
+      await saveSyncConfig();
+    }
+    syncLastAt = new Date().toISOString();
+    await saveSyncConfig();
+    updateSyncStatus('✅ 동기화됨 (' + formatSyncTime(syncLastAt) + ')', 'ok');
+    return true;
+  } catch (e) {
+    console.log('[Sync] Exception:', e);
+    updateSyncStatus('⚠️ 저장 실패: ' + e.message, 'err');
+    return false;
+  } finally {
+    syncing = false;
+  }
+}
+
+function scheduleSync() {
+  if (!syncApiKey) return;
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => { pushToCloud(); }, 3000);
+  updateSyncStatus('⏳ 3초 후 저장...', 'sync');
+}
+
+async function loadState() {
+  await loadSyncConfig();
+  // 1) 로컬 데이터 먼저 로드
+  let localLoaded = false;
+  try {
+    if (window.storage && window.storage.get) {
+      const stored = await window.storage.get('radio_gifts_v7');
+      if (stored && stored.value) {
+        records = JSON.parse(stored.value);
+        records.forEach(r => {
+          if (r.shipping === undefined) {
+            r.shipping = r.isMobile ? 'X' : (r.receipt === 'O' ? 'O' : 'X');
+          }
+          if (r.cancelled === undefined) r.cancelled = 'X';
+        });
+        localLoaded = true;
+      }
+    }
+  } catch (e) {}
+  if (!localLoaded) {
+    records = INITIAL_DATA.map(r => ({ ...r }));
+  }
+  
+  // 2) 동기화 설정돼 있으면 클라우드에서 덮어쓰기
+  if (syncApiKey && syncBinId) {
+    const cloud = await pullFromCloud();
+    if (cloud) {
+      cloud.forEach(r => {
+        if (r.shipping === undefined) {
+          r.shipping = r.isMobile ? 'X' : (r.receipt === 'O' ? 'O' : 'X');
+        }
+        if (r.cancelled === undefined) r.cancelled = 'X';
+      });
+      records = cloud;
+      // 로컬에도 저장
+      try {
+        if (window.storage && window.storage.set) {
+          await window.storage.set('radio_gifts_v7', JSON.stringify(records));
+        }
+      } catch(e) {}
+    }
+  } else if (syncApiKey) {
+    updateSyncStatus('☁️ Bin ID 없음 - 첫 저장 대기 중', 'sync');
+  } else {
+    updateSyncStatus('연결 안 됨 (⚙️ 눌러 설정)');
+  }
+}
+
+async function saveState() {
+  // 로컬 저장
+  try {
+    if (window.storage && window.storage.set) {
+      await window.storage.set('radio_gifts_v7', JSON.stringify(records));
+    }
+  } catch (e) {}
+  // 클라우드 저장 예약 (3초 뒤)
+  if (syncApiKey) scheduleSync();
+}
+
+function daysFromExp(dateStr) {
+  if (!dateStr) return null;
+  return Math.floor((new Date(dateStr) - TODAY) / 86400000);
+}
+
+function statusOf(r) {
+  if (r.cancelled === 'O') return 'cancelled';
+  if (r.used === 'O') return 'used';
+  // 유효기간 지났는데 미사용: 모바일/물건 무관하게 '놓침'
+  if (r.expDate && daysFromExp(r.expDate) < 0) return 'missed';
+  // 물건은 선물글/수령 단계 먼저 체크
+  if (!r.isMobile) {
+    if (r.giftnote !== 'O') return 'giftnote_due';
+    if (r.shipping !== 'O') return 'shipping_due';
+    if (r.receipt !== 'O') return 'receipt_due';
+  }
+  // 만료 임박
+  if (r.expDate) {
+    if (daysFromExp(r.expDate) <= 14) return 'expiring';
+    return 'available';
+  }
+  // 유효기간 없음
+  if (r.isMobile) return 'no_exp';
+  return 'available';
+}
+
+function isProgDiscontinued(prog) {
+  const info = PROGRAMS[prog];
+  return info && info.discontinued;
+}
+function isProgEvent(prog) {
+  const info = PROGRAMS[prog];
+  return info && info.event;
+}
+
+function fmtFull(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  return d.getFullYear() + '.' + (d.getMonth()+1) + '.' + d.getDate();
+}
+
+function buildProgramStatus() {
+  const result = [];
+  for (const [name, info] of Object.entries(PROGRAMS)) {
+    if (info.discontinued || info.event) continue;
+    
+    const wins = records
+      .filter(r => r.program === name && r.date && r.cancelled !== 'O')
+      .sort((a,b) => new Date(b.date) - new Date(a.date));
+    const lastWin = wins[0];
+    const lastDate = lastWin ? new Date(lastWin.date) : null;
+    const daysPassed = lastDate ? Math.floor((TODAY - lastDate) / 86400000) : null;
+    
+    let status, dDay = null;
+    if (info.restrict === null) {
+      status = 'unknown';
+    } else if (info.restrict === -1) {
+      status = 'eligible';
+    } else if (!lastDate) {
+      status = 'eligible';
+    } else if (daysPassed > info.restrict) {
+      status = 'eligible';
+    } else {
+      status = 'waiting';
+      dDay = info.restrict - daysPassed + 1;
+    }
+    
+    result.push({
+      name, time: info.time, station: info.station,
+      restrict: info.restrict,
+      lastDate: lastDate ? lastWin.date : null,
+      lastGift: lastWin ? lastWin.gift : null,
+      daysPassed, status, dDay
+    });
+  }
+  result.sort((a,b) => {
+    const r = {eligible:0, waiting:1, unknown:2};
+    if (r[a.status] !== r[b.status]) return r[a.status] - r[b.status];
+    if (a.status === 'waiting') return a.dDay - b.dDay;
+    return (a.time || '').localeCompare(b.time || '');
+  });
+  return result;
+}
+
+function restrictLabel(info) {
+  if (info.restrict === null) return '제한 ?';
+  if (info.restrict === -1) return '제한 없음';
+  if (info.restrict === 0) return '당일만';
+  return info.restrict + '일';
+}
+
+function truncate(s, n) {
+  if (!s) return '';
+  return s.length > n ? s.slice(0, n) + '…' : s;
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderPrograms() {
+  const progs = buildProgramStatus();
+  const eligibleCount = progs.filter(p => p.status === 'eligible').length;
+  document.getElementById('prog-count').textContent = '· 응모가능 ' + eligibleCount + '/' + progs.length;
+  
+  const html = progs.map(p => {
+    let badge = '';
+    if (p.status === 'eligible') {
+      badge = '<span class="prog-status eligible">응모가능</span>';
+    } else if (p.status === 'waiting') {
+      badge = '<span class="prog-status waiting">D-' + p.dDay + '</span>';
+    } else {
+      badge = '<span class="prog-status unknown">?</span>';
+    }
+    
+    const lastInfo = p.lastDate
+      ? ('마지막 ' + fmtFull(p.lastDate) + ' · ' + truncate(p.lastGift, 14))
+      : '당첨 이력 없음';
+    
+    return '<div class="prog ' + p.status + '">' +
+      '<div style="min-width:0;flex:1;">' +
+        '<div class="prog-name">' + esc(p.name) + '</div>' +
+        '<div class="prog-meta">' + (p.time || '-') + ' · ' + restrictLabel(p) + ' · ' + lastInfo + '</div>' +
+      '</div>' +
+      badge +
+    '</div>';
+  }).join('');
+  
+  document.getElementById('prog-grid').innerHTML = html;
+}
+
+function filteredRecords() {
+  return records.filter(r => {
+    const s = statusOf(r);
+    
+    if (activeFilter === 'todo') {
+      if (s === 'used' || s === 'missed' || s === 'cancelled') return false;
+    } else if (activeFilter === 'expiring') {
+      if (s !== 'expiring') return false;
+    } else if (activeFilter === 'giftnote') {
+      if (s !== 'giftnote_due') return false;
+    } else if (activeFilter === 'missed') {
+      if (s !== 'missed') return false;
+    } else if (activeFilter === 'used') {
+      // 사용 완료 필터에는 취소된 기록도 함께 표시
+      if (s !== 'used' && s !== 'cancelled') return false;
+    }
+    
+    if (progFilterVal && r.program !== progFilterVal) return false;
+    
+    if (searchTerm) {
+      const t = searchTerm.toLowerCase();
+      const hay = (r.gift+' '+r.program+' '+r.corner+' '+(r.content||'')).toLowerCase();
+      if (!hay.includes(t)) return false;
+    }
+    return true;
+  });
+}
+
+function sortRecords(list) {
+  return [...list].sort((a,b) => {
+    const sa = statusOf(a), sb = statusOf(b);
+    const rank = {expiring:0, giftnote_due:1, shipping_due:2, receipt_due:3, available:4, no_exp:5, missed:6, used:7, cancelled:8};
+    if (rank[sa] !== rank[sb]) return rank[sa] - rank[sb];
+    if ((sa === 'expiring' || sa === 'available') && a.expDate && b.expDate) {
+      return new Date(a.expDate) - new Date(b.expDate);
+    }
+    if (sa === 'missed' && a.expDate && b.expDate) {
+      return new Date(b.expDate) - new Date(a.expDate);
+    }
+    return new Date(b.date || 0) - new Date(a.date || 0);
+  });
+}
+
+function renderMetrics() {
+  const counts = {todo:0, expiring:0, giftnote:0, missed:0, used:0};
+  records.forEach(r => {
+    const s = statusOf(r);
+    if (s === 'used') counts.used++;
+    else if (s === 'missed') counts.missed++;
+    else {
+      counts.todo++;
+      if (s === 'expiring') counts.expiring++;
+      if (s === 'giftnote_due') counts.giftnote++;
+    }
+  });
+  
+  const metrics = [
+    {key:'todo', label:'미사용', value:counts.todo, cls:''},
+    {key:'expiring', label:'곧 만료', value:counts.expiring, cls:'warn'},
+    {key:'giftnote', label:'선물글 필요', value:counts.giftnote, cls:'info'},
+    {key:'missed', label:'놓침', value:counts.missed, cls:'muted'},
+    {key:'used', label:'사용 완료', value:counts.used, cls:''}
+  ];
+  document.getElementById('metrics').innerHTML = metrics.map(m => 
+    '<button class="metric ' + m.cls + (activeFilter===m.key?' active':'') + '" data-f="' + m.key + '">' +
+      '<div class="metric-label">' + m.label + '</div>' +
+      '<div class="metric-value">' + m.value + '</div>' +
+    '</button>'
+  ).join('');
+  
+  document.querySelectorAll('.metric').forEach(el => {
+    el.addEventListener('click', () => { activeFilter = el.dataset.f; render(); });
+  });
+  
+  // Missed banner — show on missed view only
+  const banner = document.getElementById('missed-banner');
+  if (activeFilter === 'missed' && counts.missed > 0) {
+    // Calculate yearly breakdown
+    const byYear = {};
+    records.forEach(r => {
+      if (statusOf(r) !== 'missed') return;
+      const y = r.expDate ? new Date(r.expDate).getFullYear() : '미상';
+      byYear[y] = (byYear[y] || 0) + 1;
+    });
+    const yearsText = Object.entries(byYear).sort()
+      .map(([y,n]) => y + '년 ' + n + '개').join(' · ');
+    banner.innerHTML = '<strong>지금까지 놓친 모바일쿠폰: 총 ' + counts.missed + '개</strong> (' + yearsText + ')';
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+function renderProgramFilter() {
+  const programs = [...new Set(records.map(r => r.program))].sort();
+  const sel = document.getElementById('prog-filter');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">전체 프로그램</option>' + 
+    programs.map(p => '<option value="' + esc(p) + '"' + (current===p?' selected':'') + '>' + esc(p) + '</option>').join('');
+}
+
+function renderCards() {
+  const list = sortRecords(filteredRecords());
+  const content = document.getElementById('content');
+  
+  if (list.length === 0) {
+    let msg = '조건에 해당하는 선물이 없어요.';
+    if (activeFilter === 'missed') msg = '아직 놓친 게 없어요! 👏';
+    content.innerHTML = '<div class="empty">' + msg + '</div>';
+    return;
+  }
+  
+  content.innerHTML = '<div class="cards">' + list.map(renderCard).join('') + '</div>';
+  
+  content.querySelectorAll('[data-toggle]').forEach(b => {
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = parseInt(b.dataset.id);
+      const field = b.dataset.toggle;
+      toggleField(id, field);
+    });
+  });
+  content.querySelectorAll('[data-detail]').forEach(b => {
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = parseInt(b.dataset.detail);
+      if (expandedIds.has(id)) expandedIds.delete(id);
+      else expandedIds.add(id);
+      render();
+    });
+  });
+  content.querySelectorAll('[data-delete]').forEach(b => {
+    b.addEventListener('click', async e => {
+      e.stopPropagation();
+      const id = parseInt(b.dataset.delete);
+      const r = records.find(x => x.id === id);
+      if (!r) return;
+      if (!confirm('"' + r.gift + '" 기록을 삭제할까요?')) return;
+      records = records.filter(x => x.id !== id);
+      expandedIds.delete(id);
+      await saveState();
+      render();
+    });
+  });
+  content.querySelectorAll('[data-edit]').forEach(b => {
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      openAddModal(parseInt(b.dataset.edit));
+    });
+  });
+  content.querySelectorAll('[data-cancel]').forEach(b => {
+    b.addEventListener('click', async e => {
+      e.stopPropagation();
+      const id = parseInt(b.dataset.cancel);
+      const r = records.find(x => x.id === id);
+      if (!r) return;
+      if (r.cancelled === 'O') {
+        r.cancelled = 'X';
+      } else {
+        if (!confirm('"' + r.gift + '" 당첨을 취소 처리할까요?\\n(중복 당첨 등으로 무효화된 경우)')) return;
+        r.cancelled = 'O';
+      }
+      await saveState();
+      render();
+    });
+  });
+}
+
+function renderCard(r) {
+  const s = statusOf(r);
+  const isUsed = s === 'used';
+  const isMissed = s === 'missed';
+  const isDisc = isProgDiscontinued(r.program);
+  const isEvent = isProgEvent(r.program);
+  
+  const badges = [];
+  if (s === 'cancelled') {
+    badges.push('<span class="badge cancelled">당첨 취소</span>');
+  } else if (s === 'expiring') {
+    badges.push('<span class="badge expiring">D-' + daysFromExp(r.expDate) + '</span>');
+  } else if (s === 'missed') {
+    badges.push('<span class="badge missed">' + (-daysFromExp(r.expDate)) + '일 전 만료</span>');
+  } else if (s === 'giftnote_due') {
+    badges.push('<span class="badge giftnote-due">선물글 필요</span>');
+  } else if (s === 'shipping_due') {
+    badges.push('<span class="badge shipping-due">배송지 미입력</span>');
+  } else if (s === 'receipt_due') {
+    badges.push('<span class="badge no-exp">수령 대기</span>');
+  } else if (s === 'available' && !isUsed) {
+    badges.push('<span class="badge available">사용 가능</span>');
+  } else if (s === 'no_exp') {
+    badges.push('<span class="badge no-exp">기한 없음</span>');
+  }
+  if (r.isMobile) badges.push('<span class="badge mobile">모바일</span>');
+  else badges.push('<span class="badge physical">물건</span>');
+  if (isDisc) badges.push('<span class="badge discont">폐지</span>');
+  if (isEvent) badges.push('<span class="badge discont">이벤트/경품</span>');
+  if (r.gift && r.gift.includes('랜덤') && !isUsed) badges.push('<span class="badge random">확인필요</span>');
+  
+  let toggles = '';
+  if (!r.isMobile) {
+    toggles += toggleBtn(r.id, 'giftnote', '선물글', r.giftnote === 'O');
+    toggles += toggleBtn(r.id, 'shipping', '배송지', r.shipping === 'O');
+    toggles += toggleBtn(r.id, 'receipt',  '수령',   r.receipt === 'O');
+  }
+  toggles += toggleBtn(r.id, 'used', '사용', r.used === 'O');
+  
+  const cardClass = 'card' + (isUsed ? ' used' : '') +
+    (s === 'expiring' ? ' expiring' : '') +
+    (s === 'giftnote_due' ? ' giftnote-due' : '') +
+    (isMissed ? ' missed' : '') +
+    (s === 'cancelled' ? ' cancelled' : '');
+  
+  const metaParts = [esc(r.program)];
+  if (r.corner) metaParts.push(esc(r.corner));
+  metaParts.push('당첨 ' + fmtFull(r.date));
+  if (r.expDate) metaParts.push('유효 ' + fmtFull(r.expDate));
+  
+  const isExpanded = expandedIds.has(r.id);
+  
+  return '<div class="' + cardClass + '">' +
+    '<div class="card-row1">' +
+      '<div class="card-gift">' + esc(r.gift) + '</div>' +
+      '<div class="card-badges">' + badges.join('') + '</div>' +
+    '</div>' +
+    '<div class="card-meta">' +
+      metaParts.map((p,i) => (i>0?'<span class="sep">·</span>':'') + '<span>' + p + '</span>').join('') +
+    '</div>' +
+    '<div class="actions">' + toggles +
+      '<button class="toggle detail-btn" data-detail="' + r.id + '">' + (isExpanded ? '접기' : '상세') + '</button>' +
+    '</div>' +
+    (isExpanded ? renderDetail(r) : '') +
+  '</div>';
+}
+
+function toggleBtn(id, field, label, isOn) {
+  return '<button class="toggle' + (isOn ? ' on' : '') + '" data-toggle="' + field + '" data-id="' + id + '">' +
+    '<span class="dot"></span>' + label +
+  '</button>';
+}
+
+function renderDetail(r) {
+  const rows = [
+    ['프로그램', r.program],
+    ['코너', r.corner || '-'],
+    ['선물', r.gift],
+    ['타입', r.isMobile ? '모바일쿠폰' : '물건'],
+    ['당첨일', fmtFull(r.date)],
+    ['유효기간', r.expDate ? fmtFull(r.expDate) : '없음'],
+    ['선물글', r.giftnote === 'O' ? '작성 완료' : '미작성'],
+    ['배송지', r.shipping === 'O' ? '입력 완료' : '미입력'],
+    ['수령', r.receipt === 'O' ? '수령함' : '미수령'],
+    ['사용', r.used === 'O' ? '사용함' : '미사용'],
+    ['당첨취소', r.cancelled === 'O' ? '취소됨 (중복 등)' : '-'],
+    ['사연', r.content || '-']
+  ];
+  return '<div class="card-detail show">' +
+    rows.map(([k,v]) => '<div class="row"><span class="k">' + k + '</span><span>' + esc(v) + '</span></div>').join('') +
+    '<div class="detail-actions">' +
+      '<button class="edit-btn" data-edit="' + r.id + '">수정</button>' +
+      '<button class="cancel-btn" data-cancel="' + r.id + '">' + (r.cancelled === 'O' ? '취소 되돌리기' : '당첨 취소') + '</button>' +
+      '<button class="delete-btn" data-delete="' + r.id + '">이 기록 삭제</button>' +
+    '</div>' +
+  '</div>';
+}
+
+async function toggleField(id, field) {
+  const r = records.find(x => x.id === id);
+  if (!r) return;
+  r[field] = r[field] === 'O' ? 'X' : 'O';
+  await saveState();
+  render();
+}
+
+function render() {
+  document.getElementById('today-line').textContent =
+    '오늘 ' + TODAY.getFullYear() + '년 ' + (TODAY.getMonth()+1) + '월 ' + TODAY.getDate() + '일 · 총 ' + records.length + '건';
+  renderPrograms();
+  renderMetrics();
+  renderProgramFilter();
+  renderCards();
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  searchTerm = e.target.value;
+  renderCards();
+});
+document.getElementById('prog-filter').addEventListener('change', e => {
+  progFilterVal = e.target.value;
+  renderCards();
+});
+
+// ---- Add/Edit record modal ----
+let editingId = null;
+
+function isoToday() {
+  const t = new Date();
+  return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+}
+
+function openAddModal(editId) {
+  editingId = editId || null;
+  const rec = editingId ? records.find(r => r.id === editingId) : null;
+  
+  // Populate program dropdown (exclude discontinued)
+  const sel = document.getElementById('add-program');
+  const opts = ['<option value="">— 선택하세요 —</option>'];
+  for (const [name, info] of Object.entries(PROGRAMS)) {
+    if (info.discontinued) continue;
+    opts.push('<option value="' + esc(name) + '">' + esc(name) + '</option>');
+  }
+  sel.innerHTML = opts.join('');
+  
+  if (rec) {
+    // Edit mode: fill with existing values
+    document.getElementById('add-date').value = rec.date || '';
+    document.getElementById('add-program').value = rec.program || '';
+    document.getElementById('add-corner').value = rec.corner || '';
+    document.getElementById('add-gift').value = rec.gift || '';
+    document.getElementById('add-exp').value = rec.expDate || '';
+    document.getElementById('add-content').value = rec.content || '';
+    document.querySelector('input[name="add-mobile"][value="' + (rec.isMobile ? 'true' : 'false') + '"]').checked = true;
+    document.getElementById('modal-title').textContent = '당첨 정보 수정';
+    document.getElementById('add-submit').textContent = '저장하기';
+  } else {
+    // Add mode: reset
+    document.getElementById('add-date').value = isoToday();
+    document.getElementById('add-program').value = '';
+    document.getElementById('add-corner').value = '';
+    document.getElementById('add-gift').value = '';
+    document.getElementById('add-exp').value = '';
+    document.getElementById('add-content').value = '';
+    document.querySelector('input[name="add-mobile"][value="true"]').checked = true;
+    document.getElementById('modal-title').textContent = '새 당첨 추가';
+    document.getElementById('add-submit').textContent = '추가하기';
+  }
+  
+  document.getElementById('add-modal').classList.remove('hidden');
+}
+function closeAddModal() {
+  editingId = null;
+  document.getElementById('add-modal').classList.add('hidden');
+}
+async function submitAddModal() {
+  const date = document.getElementById('add-date').value;
+  const program = document.getElementById('add-program').value;
+  const gift = document.getElementById('add-gift').value.trim();
+  if (!date || !program || !gift) {
+    alert('당첨일, 프로그램, 선물명은 꼭 입력해 주세요');
+    return;
+  }
+  const corner = document.getElementById('add-corner').value.trim();
+  const expDate = document.getElementById('add-exp').value || null;
+  const isMobile = document.querySelector('input[name="add-mobile"]:checked').value === 'true';
+  const content = document.getElementById('add-content').value.trim();
+  
+  if (editingId) {
+    // Update existing record (preserve used/giftnote/receipt toggles)
+    const rec = records.find(r => r.id === editingId);
+    if (rec) {
+      Object.assign(rec, { date, program, corner, gift, isMobile, expDate, content });
+    }
+  } else {
+    // Add new
+    const nextId = records.length ? Math.max(...records.map(r => r.id)) + 1 : 1;
+    records.push({
+      id: nextId, date, program, corner, gift,
+      isMobile, expDate, used: 'X',
+      giftnote: 'X', shipping: isMobile ? 'O' : 'X', receipt: isMobile ? 'O' : 'X',
+      content
+    });
+  }
+  await saveState();
+  closeAddModal();
+  render();
+}
+
+document.getElementById('open-add-btn').addEventListener('click', () => openAddModal());
+
+// Settings modal
+function openSettingsModal() {
+  document.getElementById('settings-key').value = syncApiKey || '';
+  document.getElementById('settings-bin').value = syncBinId || '';
+  const info = document.getElementById('sync-info');
+  if (syncApiKey && syncBinId) {
+    info.innerHTML = '✅ 연결됨<br>마지막 동기화: ' + formatSyncTime(syncLastAt);
+  } else if (syncApiKey) {
+    info.innerHTML = '⏳ API 키만 저장됨. 첫 저장 시 Bin이 자동 생성됩니다.';
+  } else {
+    info.innerHTML = '❌ 연결 안 됨. Master Key를 입력하고 저장하세요.';
+  }
+  document.getElementById('settings-modal').classList.remove('hidden');
+}
+function closeSettingsModal() {
+  document.getElementById('settings-modal').classList.add('hidden');
+}
+document.getElementById('settings-btn').addEventListener('click', openSettingsModal);
+document.getElementById('close-settings-btn').addEventListener('click', closeSettingsModal);
+document.getElementById('settings-cancel').addEventListener('click', closeSettingsModal);
+document.getElementById('settings-modal').addEventListener('click', e => {
+  if (e.target.id === 'settings-modal') closeSettingsModal();
+});
+
+document.getElementById('settings-save').addEventListener('click', async () => {
+  let newKey = document.getElementById('settings-key').value;
+  // 모든 공백/줄바꿈/보이지 않는 문자 제거
+  newKey = newKey.replace(/[\s\u200B-\u200D\uFEFF]/g, '').trim();
+  const newBin = document.getElementById('settings-bin').value.replace(/[\s\u200B-\u200D\uFEFF]/g, '').trim();
+  
+  if (!newKey) { alert('Master Key를 입력해주세요'); return; }
+  
+  // ASCII 아닌 문자 있는지 확인 (한글 등)
+  if (!/^[\x20-\x7E]+$/.test(newKey)) {
+    alert('⚠️ Master Key에 이상한 문자가 있어요.\n\n다시 복사해서 붙여넣어 주세요.\n(JSONBin.io → API Keys → Master Key 옆 📋 복사 버튼)');
+    return;
+  }
+  
+  const wasConnected = syncApiKey && syncBinId;
+  syncApiKey = newKey;
+  if (newBin) syncBinId = newBin;
+  
+  await saveSyncConfig();
+  closeSettingsModal();
+  
+  // 새로 Bin ID를 받은 경우 (다른 기기 연동), 그 Bin에서 불러오기
+  if (newBin && (!wasConnected || newBin !== syncBinId)) {
+    const cloud = await pullFromCloud();
+    if (cloud) {
+      cloud.forEach(r => {
+        if (r.shipping === undefined) r.shipping = r.isMobile ? 'X' : (r.receipt === 'O' ? 'O' : 'X');
+        if (r.cancelled === undefined) r.cancelled = 'X';
+      });
+      records = cloud;
+      try { await window.storage.set('radio_gifts_v7', JSON.stringify(records)); } catch(e) {}
+      render();
+      alert('✅ 클라우드에서 ' + records.length + '건 불러왔어요!');
+      return;
+    }
+  }
+  
+  // 그 외엔 현재 데이터를 클라우드에 저장
+  const ok = await pushToCloud();
+  if (ok) {
+    alert('✅ 연결됐어요!\n\nBin ID: ' + syncBinId + '\n\n이 Bin ID를 다른 기기(폰)에도 붙여넣으면 동기화됩니다.\n(⚙️ 설정에서 확인 가능)');
+    render();
+  }
+});
+
+document.getElementById('settings-disconnect').addEventListener('click', async () => {
+  if (!confirm('클라우드 연결을 끊을까요?\n(로컬 데이터는 그대로 유지됩니다)')) return;
+  await clearSyncConfig();
+  closeSettingsModal();
+  render();
+});
+document.getElementById('close-add-btn').addEventListener('click', closeAddModal);
+document.getElementById('add-cancel').addEventListener('click', closeAddModal);
+document.getElementById('add-submit').addEventListener('click', submitAddModal);
+document.getElementById('add-modal').addEventListener('click', e => {
+  if (e.target.id === 'add-modal') closeAddModal();
+});
+
+// ==== 백업/복원 기능 ====
+async function doBackup(silent) {
+  try {
+    const payload = {
+      version: 'v9',
+      exportedAt: new Date().toISOString(),
+      recordCount: records.length,
+      records: records
+    };
+    const text = JSON.stringify(payload, null, 2);
+    const blob = new Blob([text], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const now = new Date();
+    const stamp = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '_' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'radio_gift_backup_' + stamp + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    // Record backup time
+    try {
+      if (window.storage && window.storage.set) {
+        await window.storage.set('radio_last_backup', new Date().toISOString());
+      }
+    } catch(e) {}
+    document.getElementById('backup-reminder').style.display = 'none';
+    if (!silent) alert('✅ 백업 파일이 저장됐어요! (' + records.length + '건)\n\n다운로드 폴더를 확인해주세요.\n이 파일은 안전하게 보관하시면 언제든지 복원할 수 있어요.');
+  } catch (err) {
+    alert('백업 중 오류: ' + err.message);
+  }
+}
+
+document.getElementById('backup-btn').addEventListener('click', () => doBackup(false));
+
+document.getElementById('restore-btn').addEventListener('click', () => {
+  document.getElementById('restore-file').click();
+});
+
+document.getElementById('restore-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const restoredRecords = Array.isArray(data) ? data : data.records;
+      if (!Array.isArray(restoredRecords)) throw new Error('올바른 백업 파일이 아니에요');
+      
+      const confirmMsg = '📁 백업 파일에서 ' + restoredRecords.length + '건을 발견했어요.\n\n' +
+        '현재 대시보드의 ' + records.length + '건은 사라지고 백업으로 교체됩니다.\n\n' +
+        '⚠️ 진행하시겠어요? (실수하지 않았는지 다시 확인해주세요!)';
+      
+      if (!confirm(confirmMsg)) {
+        e.target.value = '';
+        return;
+      }
+      
+      // 오래된 백업 호환성: 필드가 없으면 자동 추가
+      restoredRecords.forEach(r => {
+        if (r.cancelled === undefined) r.cancelled = 'X';
+        if (r.shipping === undefined) {
+          r.shipping = r.isMobile ? 'X' : (r.receipt === 'O' ? 'O' : 'X');
+        }
+      });
+      
+      records = restoredRecords;
+      await saveState();
+      render();
+      alert('✅ ' + records.length + '건이 성공적으로 복원됐어요!');
+    } catch (err) {
+      alert('❌ 복원 실패: ' + err.message);
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+// 백업 알림: 마지막 백업이 없거나 7일 이상 지났으면 알림
+(async function checkBackupReminder() {
+  try {
+    if (!window.storage || !window.storage.get) return;
+    if (records.length < 5) return; // 데이터가 적으면 알림 안 함
+    let lastBackup = null;
+    try {
+      const stored = await window.storage.get('radio_last_backup');
+      if (stored && stored.value) lastBackup = new Date(stored.value);
+    } catch(e) {}
+    
+    const daysSince = lastBackup ? Math.floor((new Date() - lastBackup) / 86400000) : 999;
+    if (daysSince >= 7) {
+      document.getElementById('backup-reminder').style.display = 'block';
+    }
+  } catch(e) {}
+})();
+
+(async () => {
+  await loadState();
+  render();
+})();
+</script>
+</body>
+</html>
