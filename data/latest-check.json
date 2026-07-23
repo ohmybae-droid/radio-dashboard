@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-07-22T13:33:24.075889+09:00",
+  "checked_at": "2026-07-23T19:07:14.824255+09:00",
   "programs": [
     {
       "program": "조정식의 FM대행진",
@@ -8,29 +8,29 @@
       "matches": [],
       "error": null,
       "page_length": 431,
-      "html_length": 39774,
+      "html_length": 39771,
       "page_text_sample": "본문 바로가기\n장애인서비스 바로가기\n메뉴 바로가기\n푸터 바로가기\nKBS\n메뉴 열기\n검색\n마이페이지\n메뉴영역\n조정식의 FM대행진\n다시 듣기 열기\n청취자 참여 열기\n공식SNS 열기\n선물방 열기\n공지사항 열기\n본문영역\n선곡표 & 당첨확인\n푸터영역\nKBS소개\n사이버 감사실\n이용약관\n청소년 보호정책\n개인정보처리방침\nFAQ\n웹 접근성 안내\n사이트맵\nFamily Site\nKBS\n[본관] 07235 서울특별시 영등포구 여의공원로 13(여의도동)\n[별관] 07334 서울특별시 영등포구 여의대방로 359(여의도동)\n대표전화 : 02-781-1000\nⓒ KBS. All rights reserved. 무단 전재, 재배포 및 이용(AI 학습 포함) 금지\nSNS 공유하기\nFacebook 바로가기\nYoutube 바로가기\nTikTok 바로가기\nInstgram 바로가기\nTwitter 바로가기",
       "network_log": [
         "[200] https://program.kbs.co.kr/2fm/radio/sikfm/pc/board.html?smenu=adca27&bbs_loc=R2023-0192-03-656260,list,none,1,0",
-        "[200] https://cm.g.doubleclick.net/partnerpixels?gdpr=0&url=https%3A%2F%2Fprogram.kbs.co.kr%2F2fm%2Fradio%2Fsikfm%2Fpc%2Fboard.html%3Fsmenu%3Dadca27%26bbs_l",
         "[200] https://pprogramapi.kbs.co.kr/api/v1/page?platform=P&smenu=adca27&source=2fm&sname=radio&stype=sikfm&page_type=board",
-        "[200] https://www.google-analytics.com/j/collect?v=1&_v=j102&a=2024127984&t=pageview&_s=1&dl=https%3A%2F%2Fprogram.kbs.co.kr%2F2fm%2Fradio%2Fsikfm%2Fpc%2Fbo",
-        "[204] https://analytics.google.com/g/collect?v=2&tid=G-VQT8S2ZVPW&gtm=45je67k1v874690402za200zd874690402&_p=1784694763003&_gaz=1&gcs=G1--&gcd=13l3l3l3l5l1&n",
-        "[200] https://pbbsapi.kbs.co.kr/board/v1/list_board?program_code=R2023-0192&bbs_db=01&attr=01,02,10&event_state=ing&page=1&page_size=3&",
+        "[200] https://cm.g.doubleclick.net/partnerpixels?gdpr=0&url=https%3A%2F%2Fprogram.kbs.co.kr%2F2fm%2Fradio%2Fsikfm%2Fpc%2Fboard.html%3Fsmenu%3Dadca27%26bbs_l",
         "[302] https://pbbs.kbs.co.kr/index.html?bbs_loc=R2023-0192-03-656260,list,none,1,0",
         "[200] https://pprogramapi.kbs.co.kr/api/v1/user",
         "[200] https://pprogramapi.kbs.co.kr/api/v1/contents/stat?contents_id=&contents_source=&program_code=R2023-0192&sname=radio&source=2fm&source_umms=&stype=sik",
-        "[200] https://rum.beusable.net/script/checker/b190708e175146u666/8eafbc9453?url=https%3A%2F%2Fprogram.kbs.co.kr%2F2fm%2Fradio%2Fsikfm%2Fpc%2Fboard.html%3Fsm",
+        "[200] https://www.google-analytics.com/j/collect?v=1&_v=j102&a=1359552045&t=pageview&_s=1&dl=https%3A%2F%2Fprogram.kbs.co.kr%2F2fm%2Fradio%2Fsikfm%2Fpc%2Fbo",
+        "[200] https://pbbsapi.kbs.co.kr/board/v1/list_board?program_code=R2023-0192&bbs_db=01&attr=01,02,10&event_state=ing&page=1&page_size=3&",
+        "[204] https://analytics.google.com/g/collect?v=2&tid=G-VQT8S2ZVPW&gtm=45je67l1v874690402za200zd874690402&_p=1784801193953&_gaz=1&gcs=G1--&gcd=13l3l3l3l5l1&n",
         "[200] https://pbbs.kbs.co.kr/general/list.html?bbs_id=R2023-0192-03-656260&page=1",
-        "[200] https://pbbs.kbs.co.kr/css/font.css",
-        "[200] https://pbbs.kbs.co.kr/css/common.css",
-        "[200] https://pbbs.kbs.co.kr/css/swiper.css",
-        "[200] https://pbbs.kbs.co.kr/css/components.css",
         "[200] https://pbbs.kbs.co.kr/css/layout.css",
-        "[200] https://pbbs.kbs.co.kr/css/selectric.css",
-        "[200] https://pbbs.kbs.co.kr/js/lib/jquery-1.12.3.min.js",
-        "[200] https://pbbs.kbs.co.kr/js/videojs/video-js.css",
-        "[200] https://pbbs.kbs.co.kr/css/owl.carousel2.css"
+        "[200] https://pbbs.kbs.co.kr/css/jquery.mCustomScrollbar.min.css",
+        "[200] https://pbbs.kbs.co.kr/css/owl.carousel2.css",
+        "[200] https://pbbs.kbs.co.kr/css/font.css",
+        "[200] https://pbbs.kbs.co.kr/js/lib/jquery.selectric.min.js",
+        "[200] https://pbbs.kbs.co.kr/js/lib/owl.carousel2.js",
+        "[200] https://pbbs.kbs.co.kr/js/bbs/common/commonList.js",
+        "[200] https://pbbs.kbs.co.kr/js/util.js",
+        "[200] https://pbbs.kbs.co.kr/js/lib/promise.js",
+        "[200] https://pbbs.kbs.co.kr/js/lib/jquery-1.12.3.min.js"
       ]
     },
     {
@@ -40,17 +40,17 @@
       "matches": [],
       "error": null,
       "page_length": 433,
-      "html_length": 38634,
+      "html_length": 40226,
       "page_text_sample": "본문 바로가기\n장애인서비스 바로가기\n메뉴 바로가기\n푸터 바로가기\nKBS\n메뉴 열기\n검색\n마이페이지\n메뉴영역\n한해의 키스 더 라디오\n다시 듣기 열기\n매일 코너 열기\n요일 코너 열기\n선물방 열기\n공지사항 열기\n본문영역\n선곡표 & 당첨 확인\n푸터영역\nKBS소개\n사이버 감사실\n이용약관\n청소년 보호정책\n개인정보처리방침\nFAQ\n웹 접근성 안내\n사이트맵\nFamily Site\nKBS\n[본관] 07235 서울특별시 영등포구 여의공원로 13(여의도동)\n[별관] 07334 서울특별시 영등포구 여의대방로 359(여의도동)\n대표전화 : 02-781-1000\nⓒ KBS. All rights reserved. 무단 전재, 재배포 및 이용(AI 학습 포함) 금지\nSNS 공유하기\nFacebook 바로가기\nYoutube 바로가기\nTikTok 바로가기\nInstgram 바로가기\nTwitter 바로가기",
       "network_log": [
         "[200] https://program.kbs.co.kr/2fm/radio/hanhaekiss/pc/board.html?smenu=906dc8&bbs_loc=R2025-0082-03-722746,list,none,1,0",
         "[200] https://cm.g.doubleclick.net/partnerpixels?gdpr=0&url=https%3A%2F%2Fprogram.kbs.co.kr%2F2fm%2Fradio%2Fhanhaekiss%2Fpc%2Fboard.html%3Fsmenu%3D906dc8%26",
         "[200] https://pprogramapi.kbs.co.kr/api/v1/page?platform=P&smenu=906dc8&source=2fm&sname=radio&stype=hanhaekiss&page_type=board",
-        "[200] https://www.google-analytics.com/j/collect?v=1&_v=j102&a=1449176962&t=pageview&_s=1&dl=https%3A%2F%2Fprogram.kbs.co.kr%2F2fm%2Fradio%2Fhanhaekiss%2Fpc",
-        "[204] https://analytics.google.com/g/collect?v=2&tid=G-VQT8S2ZVPW&gtm=45je67k1v874690402za200zd874690402&_p=1784694784601&_gaz=1&gcs=G1--&gcd=13l3l3l3l5l1&n",
+        "[200] https://www.google-analytics.com/j/collect?v=1&_v=j102&a=1037108916&t=pageview&_s=1&dl=https%3A%2F%2Fprogram.kbs.co.kr%2F2fm%2Fradio%2Fhanhaekiss%2Fpc",
+        "[204] https://analytics.google.com/g/collect?v=2&tid=G-VQT8S2ZVPW&gtm=45je67l1v874690402za200zd874690402&_p=1784801215048&_gaz=1&gcs=G1--&gcd=13l3l3l3l5l1&n",
         "[302] https://pbbs.kbs.co.kr/index.html?bbs_loc=R2025-0082-03-722746,list,none,1,0",
-        "[200] https://pbbsapi.kbs.co.kr/board/v1/list_board?program_code=R2025-0082&bbs_db=01&attr=01,02,10&event_state=ing&page=1&page_size=3&",
         "[200] https://pprogramapi.kbs.co.kr/api/v1/user",
+        "[200] https://pbbsapi.kbs.co.kr/board/v1/list_board?program_code=R2025-0082&bbs_db=01&attr=01,02,10&event_state=ing&page=1&page_size=3&",
         "[200] https://pprogramapi.kbs.co.kr/api/v1/contents/stat?contents_id=&contents_source=&program_code=R2025-0082&sname=radio&source=2fm&source_umms=&stype=han",
         "[200] https://rum.beusable.net/script/checker/b190708e175146u666/8eafbc9453?url=https%3A%2F%2Fprogram.kbs.co.kr%2F2fm%2Fradio%2Fhanhaekiss%2Fpc%2Fboard.html",
         "[200] https://pbbs.kbs.co.kr/general/list.html?bbs_id=R2025-0082-03-722746&page=1",
@@ -58,11 +58,11 @@
         "[200] https://pbbs.kbs.co.kr/css/common.css",
         "[200] https://pbbs.kbs.co.kr/css/layout.css",
         "[200] https://pbbs.kbs.co.kr/css/components.css",
-        "[200] https://pbbs.kbs.co.kr/css/owl.carousel2.css",
         "[200] https://pbbs.kbs.co.kr/css/swiper.css",
         "[200] https://pbbs.kbs.co.kr/css/selectric.css",
         "[200] https://pbbs.kbs.co.kr/js/videojs/video-js.css",
-        "[200] https://pbbs.kbs.co.kr/css/jquery.mCustomScrollbar.min.css"
+        "[200] https://pbbs.kbs.co.kr/css/jquery.mCustomScrollbar.min.css",
+        "[200] https://pbbs.kbs.co.kr/css/owl.carousel2.css"
       ]
     }
   ]
